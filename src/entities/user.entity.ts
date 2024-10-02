@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
  
 @Entity({ name: "users" })
@@ -10,6 +11,12 @@ class User {
  
   @Column({ unique: true, nullable: false })
   password: string;
+
+  @Column({
+    nullable: true
+  })
+  @Exclude()
+  public currentHashedRefreshToken?: string;
 
   @CreateDateColumn()
   created_at: Date
