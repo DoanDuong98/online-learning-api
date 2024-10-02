@@ -7,7 +7,10 @@ import { UsersModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { AuthenticationModule } from './modules/authentication/authentication.module';
+import { CreditCardController } from './modules/credit-card/credit-card.controller';
 import * as Joi from 'joi';
+import { StripeWebhookController } from './modules/stripe/webhook/stripe-webhook.controller';
+import StripeWebhookService from './modules/stripe/webhook/stripe-webhook.service';
 
 @Module({
   imports: [
@@ -30,6 +33,11 @@ import * as Joi from 'joi';
         JWT_ACCESS_TOKEN_EXPIRATION_TIME: Joi.string().required(),
         JWT_REFRESH_TOKEN_SECRET: Joi.string().required(),
         JWT_REFRESH_TOKEN_EXPIRATION_TIME: Joi.string().required(),
+        STRIPE_SECRET_KEY: Joi.string(),
+        STRIPE_CURRENCY: Joi.string(),
+        FRONTEND_URL: Joi.string(),
+        MONTHLY_SUBSCRIPTION_PRICE_ID: Joi.string(),
+        STRIPE_WEBHOOK_SECRET: Joi.string(),
       }),
       validationOptions: {
         abortEarly: false,
@@ -40,7 +48,7 @@ import * as Joi from 'joi';
     DatabaseModule,
     AuthenticationModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, UsersService],
+  controllers: [AppController, CreditCardController, StripeWebhookController],
+  providers: [AppService, UsersService, StripeWebhookService],
 })
 export class AppModule {}

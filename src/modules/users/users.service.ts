@@ -1,15 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import User from 'src/entities/user.entity';
+import User from 'src/modules/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import CreateUserDto from './dto/createUser.dto';
 import * as bcrypt from 'bcrypt';
+import StripeService from '../stripe/stripe.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private stripeService: StripeService,
   ) {}
 
   async getByEmail(email: string) {
@@ -58,8 +60,22 @@ export class UsersService {
   }
 
   async create(userData: CreateUserDto) {
-    const newUser = this.usersRepository.create(userData);
+    const stripeCustomer = await this.stripeService.createCustomer(userData.name, userData.email);
+ 
+    const newUser = this.usersRepository.create({
+      ...userData,
+      stripeCustomerId: stripeCustomer.id
+    });
     await this.usersRepository.save(newUser);
     return newUser;
+  }
+
+  async updateMonthlySubscriptionStatus(
+    stripeCustomerId: string, monthlySubscriptionStatus: string
+  ) {
+    return this.usersRepository.update(
+      { stripeCustomerId },
+      { monthlySubscriptionStatus }
+    );
   }
 }

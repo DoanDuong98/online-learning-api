@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
-import { ExceptionsLoggerFilter } from './utils/exceptionsLogger.filter';
+import rawBodyMiddleware from './middlewares/rawBody.middleware';
 
 async function bootstrap() {
   const logger = new Logger(bootstrap.name);
@@ -12,12 +12,15 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  // const { httpAdapter } = app.get(HttpAdapterHost);
-  // app.useGlobalFilters(new ExceptionsLoggerFilter(httpAdapter));
+  app.use(rawBodyMiddleware());
 
-  app.useGlobalPipes(new ValidationPipe({ skipMissingProperties: true }))
+  app.useGlobalPipes(new ValidationPipe({ skipMissingProperties: true }));
 
   const config_service = app.get(ConfigService);
+  app.enableCors({
+    origin: config_service.get('FRONTEND_URL'),
+    credentials: true
+  });
   await app.listen(config_service.get('PORT'), () => {
     logger.log(`Application running on port ${config_service.get('PORT')}`)
   });
